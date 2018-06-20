@@ -1,20 +1,37 @@
-// Copyright 2017 Canonical Ltd.
-// Licensed under the AGPLv3, see LICENCE file for details.
+// Copyright 2018 Canonical Ltd.
+// Licensed under the LGPL, see LICENCE file for details.
 
-package store
+package simplekv
 
 import (
+	"context"
 	"time"
 
-	"golang.org/x/net/context"
 	errgo "gopkg.in/errgo.v1"
 )
 
-// A KeyValueStore is a store that associates a value with a specified
-// key.
-type KeyValueStore interface {
+var (
+	// ErrNotFound is the error cause used when an identity cannot be
+	// found in storage.
+	ErrNotFound = errgo.New("not found")
+
+	// ErrDuplicateKey is the error cause used when SetKeyOnce
+	// tries to set a duplicate key.
+	ErrDuplicateKey = errgo.New("duplicate key")
+)
+
+// KeyNotFoundError creates a new error with a cause of ErrNotFound and
+// an appropriate message.
+func KeyNotFoundError(key string) error {
+	err := errgo.WithCausef(nil, ErrNotFound, "key %s not found", key)
+	err.(*errgo.Err).SetLocation(1)
+	return err
+}
+
+// Store holds the interface implemented by the various backend implementations.
+type Store interface {
 	// Context returns a context that is suitable for passing to the
-	// other KeyValueStore methods. KeyValueStore methods called with
+	// other Store methods. Store methods called with
 	// such a context will be sequentially consistent; for example, a
 	// value that is set in Set will immediately be available from
 	// Get.
@@ -54,24 +71,15 @@ type KeyValueStore interface {
 	Update(ctx context.Context, key string, expire time.Time, getVal func(old []byte) ([]byte, error)) error
 }
 
-// SetKeyOnce is like KeyValueStore.Set except that if the key already
-// has a value associated with it it returns an error with the cause of
+// SetKeyOnce is like Store.Set except that if the key already
+// has a value associated with it it returns an error with a cause of
 // ErrDuplicateKey.
-func SetKeyOnce(ctx context.Context, kv KeyValueStore, key string, value []byte, expire time.Time) error {
+func SetKeyOnce(ctx context.Context, kv Store, key string, value []byte, expire time.Time) error {
 	err := kv.Update(ctx, key, expire, func(old []byte) ([]byte, error) {
 		if old != nil {
-			return nil, DuplicateKeyError(key)
+			return nil, errgo.WithCausef(nil, ErrDuplicateKey, "key %s already exists", key)
 		}
 		return value, nil
 	})
-	return errgo.Mask(err, errgo.Any)
-}
-
-// An ProviderDataStore is a data store that supports identity provider
-// specific KeyValueStores. These stores can be used by identity
-// providers to store data that is not directly related to an identity.
-type ProviderDataStore interface {
-	// KeyValueStore gets a KeyValueStore for use by the given
-	// identity provider.
-	KeyValueStore(ctx context.Context, idp string) (KeyValueStore, error)
+	return errgo.Mask(err, errgo.Is(ErrDuplicateKey))
 }
