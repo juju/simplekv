@@ -16,6 +16,8 @@ import (
 	"github.com/juju/simplekv"
 )
 
+type sessionKey struct{}
+
 // kvStore implements simplekv.Store.
 type kvStore struct {
 	coll *mgo.Collection
@@ -35,8 +37,6 @@ func NewStore(coll *mgo.Collection) (simplekv.Store, error) {
 	}, nil
 }
 
-type sessionKey struct{}
-
 // Context implements simplekv.Context by copying the kvStore's underlying
 // session if one isn't already present in the context.
 func (s *kvStore) Context(ctx context.Context) (_ context.Context, close func()) {
@@ -47,7 +47,7 @@ func (s *kvStore) Context(ctx context.Context) (_ context.Context, close func())
 	// session with the context so that they can implement session
 	// pooling if desired?
 	session := s.coll.Database.Session.Copy()
-	return context.WithValue(ctx, sessionKey{}, session), session.Close
+	return ContextWithSession(ctx, session), session.Close
 }
 
 // session returns a *mgo.Session for use in subsequent queries. The returned
@@ -173,4 +173,11 @@ func (s *kvStore) Update(ctx context.Context, key string, expire time.Time, getV
 		return errgo.Notef(ctx.Err(), "cannot update key")
 	}
 	return errgo.Newf("too many retry attempts trying to update key")
+}
+
+// ContextWithSession returns the given context associated with the given
+// session. When the context is passed to one of the Store methods,
+// the session will be used for database access.
+func ContextWithSession(ctx context.Context, session *mgo.Session) context.Context {
+	return context.WithValue(ctx, sessionKey{}, session)
 }
