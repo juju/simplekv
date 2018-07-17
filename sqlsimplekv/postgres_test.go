@@ -4,8 +4,11 @@
 package sqlsimplekv_test
 
 import (
+	"fmt"
+	"sync/atomic"
+	"testing"
+
 	"github.com/juju/postgrestest"
-	gc "gopkg.in/check.v1"
 	errgo "gopkg.in/errgo.v1"
 
 	"github.com/juju/simplekv"
@@ -13,30 +16,18 @@ import (
 	"github.com/juju/simplekv/sqlsimplekv"
 )
 
-type postgresKeyValueSuite struct {
-	simplekvtest.KeyValueSuite
-	pg *postgrestest.DB
-}
-
-var _ = gc.Suite(&postgresKeyValueSuite{})
-
-func (s *postgresKeyValueSuite) SetUpTest(c *gc.C) {
+func TestPostgresStore(t *testing.T) {
 	pg, err := postgrestest.New()
-	if errgo.Cause(err) == postgrestest.ErrDisabled {
-		c.Skip(err.Error())
-		return
+	if err != nil {
+		if errgo.Cause(err) == postgrestest.ErrDisabled {
+			t.Skip(err)
+		}
+		t.Fatal(err)
 	}
-	c.Assert(err, gc.Equals, nil)
-	s.pg = pg
-	s.NewStore = func() (simplekv.Store, error) {
-		return sqlsimplekv.NewStore("postgres", s.pg.DB, "test")
-	}
-	s.KeyValueSuite.SetUpTest(c)
-}
-
-func (s *postgresKeyValueSuite) TearDownTest(c *gc.C) {
-	if s.pg != nil {
-		s.pg.Close()
-	}
-	s.KeyValueSuite.TearDownTest(c)
+	defer pg.Close()
+	var id int32
+	simplekvtest.TestStore(t, func() (_ simplekv.Store, err error) {
+		table := fmt.Sprintf("test%d", atomic.AddInt32(&id, 1))
+		return sqlsimplekv.NewStore("postgres", pg.DB, table)
+	})
 }
