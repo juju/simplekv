@@ -4,40 +4,34 @@
 package mgosimplekv_test
 
 import (
-	"github.com/juju/testing"
-	gc "gopkg.in/check.v1"
+	"fmt"
+	"sync/atomic"
+	"testing"
 
+	"github.com/juju/mgotest"
 	"github.com/juju/simplekv"
 	"github.com/juju/simplekv/internal/simplekvtest"
 	"github.com/juju/simplekv/mgosimplekv"
+	errgo "gopkg.in/errgo.v1"
 )
 
-type kvSuite struct {
-	testing.IsolatedMgoSuite
-	simplekvtest.KeyValueSuite
-}
-
-var _ = gc.Suite(&kvSuite{})
-
-func (s *kvSuite) SetUpSuite(c *gc.C) {
-	s.IsolatedMgoSuite.SetUpSuite(c)
-	s.KeyValueSuite.SetUpSuite(c)
-}
-
-func (s *kvSuite) TearDownSuite(c *gc.C) {
-	s.KeyValueSuite.TearDownSuite(c)
-	s.IsolatedMgoSuite.TearDownSuite(c)
-}
-
-func (s *kvSuite) SetUpTest(c *gc.C) {
-	s.IsolatedMgoSuite.SetUpTest(c)
-	s.NewStore = func() (simplekv.Store, error) {
-		return mgosimplekv.NewStore(s.Session.DB("test").C("test"))
+func TestMgoStore(t *testing.T) {
+	db, err := mgotest.New()
+	if err != nil {
+		if errgo.Cause(err) == mgotest.ErrDisabled {
+			t.Skip(err)
+		}
+		t.Fatal(err)
 	}
-	s.KeyValueSuite.SetUpTest(c)
-}
 
-func (s *kvSuite) TearDownTest(c *gc.C) {
-	s.KeyValueSuite.TearDownTest(c)
-	s.IsolatedMgoSuite.TearDownTest(c)
+	defer db.Close()
+	var id int32
+	simplekvtest.TestStore(t, func() (_ simplekv.Store, err error) {
+		coll := fmt.Sprintf("test%d", atomic.AddInt32(&id, 1))
+		store, err := mgosimplekv.NewStore(db.C(coll))
+		if err != nil {
+			return nil, errgo.Mask(err)
+		}
+		return store, nil
+	})
 }
