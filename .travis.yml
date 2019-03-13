@@ -1,14 +1,8 @@
 language: go
-go_import_path: "github.com/juju/simplekv"
 go: 
-  - "1.9"
-  - "1.10"
-before_install:
-  - "go get github.com/rogpeppe/godeps"
-install:
-  - "go get -d github.com/juju/simplekv"
-  - "godeps -u $GOPATH/src/github.com/juju/simplekv/dependencies.tsv"
-script: go test ./...
+  - "1.11.5"
+  - "1.12"
+script: GO111MODULE=on go test ./...
 services:
   - mongodb
   - postgresql
