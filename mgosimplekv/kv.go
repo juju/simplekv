@@ -8,9 +8,9 @@ import (
 	"context"
 	"time"
 
+	mgo "github.com/juju/mgo/v2"
+	"github.com/juju/mgo/v2/bson"
 	errgo "gopkg.in/errgo.v1"
-	mgo "gopkg.in/mgo.v2"
-	"gopkg.in/mgo.v2/bson"
 	retry "gopkg.in/retry.v1"
 
 	"github.com/juju/simplekv"
