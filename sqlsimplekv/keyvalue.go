@@ -6,7 +6,6 @@ package sqlsimplekv
 import (
 	"context"
 	"database/sql"
-	sqldriver "database/sql/driver"
 	"fmt"
 	"time"
 
@@ -54,7 +53,7 @@ type keyValueParams struct {
 	TableName string
 	Key       string
 	Value     []byte
-	Expire    nullTime
+	Expire    sql.NullTime
 	Update    bool
 }
 
@@ -109,8 +108,11 @@ func (s *kvStore) set(ctx context.Context, q queryer, key string, value []byte, 
 		TableName:  s.tableName,
 		Key:        key,
 		Value:      value,
-		Expire:     nullTime{expire, !expire.IsZero()},
-		Update:     !insertOnly,
+		Expire: sql.NullTime{
+			Time:  expire,
+			Valid: !expire.IsZero(),
+		},
+		Update: !insertOnly,
 	})
 	if err != nil {
 		return errgo.Mask(err, s.driver.isDuplicate)
@@ -153,32 +155,28 @@ func (s *kvStore) Update(ctx context.Context, key string, expire time.Time, getV
 	}
 }
 
-type nullTime struct {
-	Time  time.Time
-	Valid bool
-}
-
-// Scan implements sql.Scanner.
-func (n *nullTime) Scan(src interface{}) error {
-	if src == nil {
-		n.Time = time.Time{}
-		n.Valid = false
-		return nil
+// Keys implements simplekv.Store.Keys.
+func (s *kvStore) Keys(ctx context.Context) ([]string, error) {
+	rows, err := s.driver.query(ctx, s.db, tmplListKeys, &keyValueParams{
+		argBuilder: s.driver.argBuilderFunc(),
+		TableName:  s.tableName,
+	})
+	if err != nil {
+		return nil, errgo.Mask(err)
 	}
-	if t, ok := src.(time.Time); ok {
-		n.Time = t
-		n.Valid = true
-		return nil
+	defer rows.Close()
+	keys := []string{}
+	for rows.Next() {
+		var key string
+		if err := rows.Scan(&key); err != nil {
+			return nil, errgo.Mask(err)
+		}
+		keys = append(keys, key)
 	}
-	return errgo.Newf("unsupported Scan, storing driver.Value type %T into type %T", src, n)
-}
-
-// Value implements sqldriver.Valuer.
-func (n nullTime) Value() (sqldriver.Value, error) {
-	if n.Valid {
-		return n.Time, nil
+	if err := rows.Err(); err != nil {
+		return nil, errgo.Mask(err)
 	}
-	return nil, nil
+	return keys, nil
 }
 
 // withTx runs f in a new transaction. any error returned by f will not

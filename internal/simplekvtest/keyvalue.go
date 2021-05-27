@@ -5,6 +5,7 @@ package simplekvtest
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -15,6 +16,7 @@ import (
 	errgo "gopkg.in/errgo.v1"
 
 	"github.com/juju/simplekv"
+	"github.com/juju/utils"
 )
 
 // TestStore runs a set of tests to check that a given
@@ -205,6 +207,35 @@ func (s *suite) TestUpdateReturnNilThenUpdatesAsNonNil(c *qt.C) {
 		return nil, nil
 	})
 	c.Assert(err, qt.Equals, nil)
+}
+
+func (s *suite) TestKeys(c *qt.C) {
+	ctx := s.ctx
+
+	kv, ok := s.kv.(simplekv.KeyLister)
+	c.Assert(ok, qt.Equals, true)
+
+	keys, err := kv.Keys(ctx)
+	c.Assert(err, qt.Equals, nil)
+	c.Assert(keys, qt.HasLen, 0)
+
+	N := 100
+	expected := make(map[string]bool)
+	for i := 0; i < N; i++ {
+		key := utils.MustNewUUID().String()
+		value := fmt.Sprintf("value-%d", i)
+		err := s.kv.Set(ctx, key, []byte(value), time.Time{})
+		c.Assert(err, qt.Equals, nil)
+		expected[key] = true
+	}
+
+	keys, err = kv.Keys(ctx)
+	c.Assert(err, qt.Equals, nil)
+	c.Assert(keys, qt.HasLen, len(expected))
+	for _, key := range keys {
+		_, ok := expected[key]
+		c.Assert(ok, qt.Equals, true)
+	}
 }
 
 // TODO factor the runTests function into a separate public repo somewhere.
