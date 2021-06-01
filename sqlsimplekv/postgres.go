@@ -50,6 +50,9 @@ var postgresTmpls = [numTmpl]string{
 		VALUES ({{.Key | .Arg}}, {{.Value | .Arg}}, {{.Expire | .Arg}})
 		{{if .Update}}ON CONFLICT (key) DO UPDATE
 		SET value={{.Value | .Arg}}, expire={{.Expire | .Arg}}{{end}}`,
+	tmplListKeys: `
+		SELECT DISTINCT key FROM {{.TableName}} WHERE (expire IS NULL OR expire > now())
+	`,
 }
 
 // newPostgresDriver creates a postgres driver using the given DB.

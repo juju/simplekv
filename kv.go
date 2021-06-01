@@ -71,6 +71,14 @@ type Store interface {
 	Update(ctx context.Context, key string, expire time.Time, getVal func(old []byte) ([]byte, error)) error
 }
 
+// KeyLister holds the interface used to list keys store in the Store.
+type KeyLister interface {
+	Store
+
+	// Keys returns a distinct list of stored keys.
+	Keys(ctx context.Context) ([]string, error)
+}
+
 // SetKeyOnce is like Store.Set except that if the key already
 // has a value associated with it it returns an error with a cause of
 // ErrDuplicateKey.

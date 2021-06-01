@@ -67,3 +67,16 @@ func (s *kvStore) Update(ctx context.Context, key string, expire time.Time, getV
 	s.data[key] = newVal
 	return nil
 }
+
+// Keys implements simplekv.Store.Keys.
+func (s *kvStore) Keys(_ context.Context) ([]string, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	keys := make([]string, len(s.data))
+	i := 0
+	for k, _ := range s.data {
+		keys[i] = k
+		i++
+	}
+	return keys, nil
+}

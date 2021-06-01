@@ -175,6 +175,18 @@ func (s *kvStore) Update(ctx context.Context, key string, expire time.Time, getV
 	return errgo.Newf("too many retry attempts trying to update key")
 }
 
+// Keys implements simplekv.Store.Keys.
+func (s *kvStore) Keys(ctx context.Context) ([]string, error) {
+	coll := s.c(ctx)
+	defer coll.Database.Session.Close()
+
+	var keys []string
+	if err := coll.Find(bson.M{}).Distinct("_id", &keys); err != nil {
+		return nil, errgo.Mask(err)
+	}
+	return keys, nil
+}
+
 // ContextWithSession returns the given context associated with the given
 // session. When the context is passed to one of the Store methods,
 // the session will be used for database access.

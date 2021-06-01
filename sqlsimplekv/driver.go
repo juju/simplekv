@@ -20,6 +20,7 @@ const (
 	tmplGetKeyValue
 	tmplGetKeyValueForUpdate
 	tmplInsertKeyValue
+	tmplListKeys
 	numTmpl
 )
 
