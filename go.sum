@@ -16,8 +16,8 @@ github.com/juju/mgo/v2 v2.0.0-20210302023703-70d5d206e208 h1:/WiCm+Vpj87e4QWuWwP
 github.com/juju/mgo/v2 v2.0.0-20210302023703-70d5d206e208/go.mod h1:0OChplkvPTZ174D2FYZXg4IB9hbEwyHkD+zT+/eK+Fg=
 github.com/juju/mgotest v1.0.2 h1:rgeY0zbfWvxsuCz9m13VAGPFQVzQJeSZOnJ/AzkrkRQ=
 github.com/juju/mgotest v1.0.2/go.mod h1:04v1Xi2RiTO3h77YWtaXB2LAaGRSSi+Vl4hOV1coD0k=
-github.com/juju/postgrestest v1.1.0 h1:jEGPSV72rQuQGSzBZfEU15As6FqThPWgNz8ycKD1d1E=
-github.com/juju/postgrestest v1.1.0/go.mod h1:/n17Y2T6iFozzXwSCO0JYJ5gSiz2caEtSwAjh/uLXDM=
+github.com/juju/postgrestest v1.1.1 h1:N5Lys2LN1/JWh17X3MsGQFVpuFnOmwDbmSQUwIRyxRE=
+github.com/juju/postgrestest v1.1.1/go.mod h1:/n17Y2T6iFozzXwSCO0JYJ5gSiz2caEtSwAjh/uLXDM=
 github.com/juju/retry v0.0.0-20160928201858-1998d01ba1c3/go.mod h1:OohPQGsr4pnxwD5YljhQ+TZnuVRYpa5irjugL1Yuif4=
 github.com/juju/retry v0.0.0-20180821225755-9058e192b216 h1:/eQL7EJQKFHByJe3DeE8Z36yqManj9UY5zppDoQi4FU=
 github.com/juju/retry v0.0.0-20180821225755-9058e192b216/go.mod h1:OohPQGsr4pnxwD5YljhQ+TZnuVRYpa5irjugL1Yuif4=
