@@ -14,7 +14,7 @@ require (
 	github.com/juju/testing v0.0.0-20180920084828-472a3e8b2073 // indirect
 	github.com/juju/utils v0.0.0-20180820210520-bf9cc5bdd62d
 	github.com/juju/version v0.0.0-20180108022336-b64dbd566305 // indirect
-	github.com/lib/pq v1.10.3
+	github.com/lib/pq v1.10.4
 	golang.org/x/crypto v0.0.0-20190313024323-a1f597ede03a // indirect
 	gopkg.in/errgo.v1 v1.0.1
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce // indirect
