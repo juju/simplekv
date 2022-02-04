@@ -7,8 +7,8 @@ require (
 	github.com/juju/clock v0.0.0-20190205081909-9c5c9712527c // indirect
 	github.com/juju/errors v0.0.0-20190207033735-e65537c515d7 // indirect
 	github.com/juju/loggo v0.0.0-20190212223446-d976af380377 // indirect
-	github.com/juju/mgo/v2 v2.0.0-20210302023703-70d5d206e208
-	github.com/juju/mgotest v1.0.2
+	github.com/juju/mgo/v2 v2.0.0-20220111072304-f200228f1090
+	github.com/juju/mgotest v1.0.3
 	github.com/juju/postgrestest v1.1.1
 	github.com/juju/retry v0.0.0-20180821225755-9058e192b216 // indirect
 	github.com/juju/testing v0.0.0-20180920084828-472a3e8b2073 // indirect
